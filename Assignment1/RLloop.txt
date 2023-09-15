@@ -1,0 +1,33 @@
+RL Scenario
+
+THe RL loop I will be discussing is for Tobin Corporation, the premier seller of sports shoes in the country.
+
+The agent is a marketing strategy based that is responsible for making advertising decisions.
+
+The action space is the possible advertising actions that the agent can take.
+For example, the agent can choose to advertise on TV, advertise on the radio, distribute flyers, or not advertise.
+
+The state represents the current enviroments characteristics, which the agent then uses to make decision.
+There are countless factors to be taken into consideration, but I will list a few.
+-Historical advertising data based on past campaigns and their results. (If Markovian is the goal, then this will inherently just be "trained")
+-Market condititions, such as economic volatitility
+-Performance of other competitors such as Nike or Adidas
+-Consumer demographics and behavior
+-Advertising budget
+We would have to choose a set of quantifiable factors to make an acceptable "state" to properly represent the environment.
+
+The reward is complex and difficult in the area of marketing. In a RL application, it can be difficult to understand the timing of rewards.
+This can be especially true in marketing, as the gains from advertising campaigns take time to realize.
+The immediate reward could be given based on an increase in sales, and we could implement long term rewards using common marketing statistics, such as customer life cycle and ROI.
+
+
+We would design this loop so that the agent would continuously attempt new campaigns to sell Tobin Corp. shoes.
+It would use the "state" that we have defined, then based of that, provide an output on what advertising campaigns we should run.
+Based on customer feedback and other statistics talked about above, we would then reward the agent, either positively or negatively.
+After this process, it would repeat the process of analyzing its state and then take an action, outputting a campaign strategy. 
+
+Some of the challenges with defining these are the inherent ambiguity of marketing, the reward design, and the idea of exploration/exploitation.
+
+Do we want to design our agent to explore new techniques in advertising or do we want it to use more common and reliable techniques?
+This is all dependant on how risk-averse we want this RL loop.
+
