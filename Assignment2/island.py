@@ -10,5 +10,10 @@ class island:
         self.name = name
         self.terminal = terminal
 
+        def reward(self):
+            rew = -1
+            if self.treasure == True:
+                rew+=2
+            return rew
 
-        
+
