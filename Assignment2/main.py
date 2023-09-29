@@ -3,8 +3,7 @@
 import island
 import agent
 
-
-gamma = .99 #could not figure out where to implement this yet?
+gamma = .99
 num_of_steps = 25
 
 
@@ -44,7 +43,7 @@ def run(steps):
     curr = i1
     
     agent1 = agent.agent(curr.location)
-    actions.append([["move"],[curr.name], [0]])
+    actions.append(["Start      ",curr.name, 0])
    
     # for i in range(steps):
     #     if curr.terminal == True:
@@ -56,8 +55,8 @@ def run(steps):
         
         #if term state is reached
         if nextMove == None:
-            actions.append([["Term"],[curr.location],[reward]])
-            return actions
+            actions.append(["Terminate   ",curr.name,reward * (gamma ** i)])
+            break
         
         
         #if we want to dig
@@ -65,21 +64,38 @@ def run(steps):
             reward = agent1.dig(curr.treasure)
             if curr.treasure:
                 curr.treasure = False
-            actions.append([["Dig"],[curr.location],[reward]])
+            actions.append(["Dig        ",curr.name,reward * (gamma ** i)])
         
         else: # if we move islands 
 
             curr = nextMove
-            actions.append([["Move"],[curr.location],[reward]])
+            actions.append(["Move Island",curr.name,reward * (gamma ** i)])
         #print(actions)
+
+    #implement Gamma
+
+    '''Should I have implemented gamma at the end of each episode, or does in time work?''' 
+
+    #for i in range(len(actions)):
+   #     actions[i][2] = int(actions[i][2]) * (gamma ** float(i))
+
     return actions
 
 #print(run(25)[0])
 results= run(num_of_steps)
-print(f"Run 1: \n{results}\n\n")
-
+#print(f"Run 1: \n{results}\n\n")
+#print('\n'.join(['\t'.join([str(cell) for cell in row]) for row in results]))
 #Task 3
 
-# for i in range(1,11):
-#     results= run(num_of_steps)
-#     print(f"Run {i}: \n{results[0]}, \nTotal Reward: {results[1]}\n\n")
+for i in range(1,11):
+     results= run(num_of_steps)
+     print(f"\nRun {i}:\n")
+     print('\n'.join(['\t'.join([str(cell) for cell in row]) for row in results]))
+     
+     #total reward calculation
+     sums = 0.0
+     for i in results:
+         sums += i[2]
+     print("Total Reward: ", sums)
+
+#Task 3
