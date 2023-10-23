@@ -1,0 +1,48 @@
+The following are the results when is_slippery=False
+
+Best reward updated 0.000 -> 1.000
+Solved in 13 iterations!
+
+Final Value Table
+
+ 0.000  0.629  0.701  0.631
+ 0.656  0.590  0.810  0.590
+ 0.729  0.810  0.900  0.566
+ 0.590  0.900  1.000  0.566
+
+Final Policy
+
+ Down  Right  Down  Left
+ Down  Down  Down  Down
+ Right  Down  Down  Right
+ Down  Right  Right  Right
+
+As we can see, this is a policy that makes sense. All agents would reach the terminal state with this given policy. As such, the reward is 1.0 (20/20).
+
+
+
+The following are the results when is_slippery = True
+
+Best reward updated 0.750 -> 0.850
+Solved in 168 iterations!
+
+Final Value Table
+
+ 0.539  0.479  0.584  0.435
+ 0.744  0.000  0.889  0.000
+ 1.207  2.050  2.314  0.000
+ 0.000  3.429  6.055  0.000
+
+Final Policy
+
+ Left  Up    Left  Up
+ Left  Left  Left  Left
+ Up    Down  Left  Left
+ Left  Right  Right  Left
+
+We eventually reached .85 reward after 168 iterations. At first glance, the policy looks super wierd, but the stochastic nature of direction change with is_slippery justifies why the policy is how it is. We can also look at the value table, and that makes the policy much clearer. According to the value table, Wwe want to land in the [[Down, Left],[Right,Right] section of the maze. Thinking about this, it makes sense. This makes a nice cycle, where eventually we will reach the terminal state after a lucky run (helpful slips/no slips).
+
+Overall, it is easy to see why the agent performs better when the ice is not slippery. This is due to the non-stochastic nature of the non-slippery enviornment. However, when we introduce stochasticity (with the slippery ice), we can see that it takes much longer to reach our goal of >.8 episodes terminating. and less episodes reach the terminal state.
+
+This was a super cool assignment, and the comments were very helpful.
+
