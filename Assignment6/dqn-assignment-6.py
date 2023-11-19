@@ -6,6 +6,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
 from itertools import count
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -97,20 +98,31 @@ steps_done = 0
 # Define epsilon-greedy action selection function
 def select_action(state):
     global steps_done
+    #increment steps done after defining eps threshold
     sample = random.random()
-    # TODO: Implement epsilon-greedy action selection
+    
     # TODO: define epsilon threshold
+    eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1 * (steps_done / EPS_DECAY))
+    steps_done += 1
     if sample > eps_threshold:
         with torch.no_grad():
             # Pass the current state through the policy network to get the Q-values for all actions.
+            qvals = policy_net(state)
             # Find the action with the highest Q-value.
+            maxAction = qvals.max()
             # Extract the index of that action (since the index corresponds to the action in a discrete action space).
+            act_index = maxAction.index()
             # Reshapes the index into a tensor with shape (1, 1), which can be used for further processing or as an input to another function.
+            return torch.tensor([[act_index]])
     else:
         # Creates a new PyTorch tensor.
+        #going to do so in a few lines, was easier to do so
         # Generate a nested list with a single element, which is a random sample from the environment's action space.
+        random_action = env.action_space.sample()
         # Place the tensor on the specified device (CPU or GPU).
+        #going to do so in a few lines, was easier to do so
         # Set the data type of the tensor to a 64-bit integer.
+        return torch.tensor([[random_action]])
     
 
 episode_durations = []
@@ -144,6 +156,9 @@ def plot_durations(show_result=False):
 def optimize_model():
     # TODO: Implement optimization step
     # If length of memory is less than batch size, return
+    if len(memory) < BATCH_SIZE:
+        return
+    transitions = memory.sample(BATCH_SIZE)
     # Convert batch-array of Transitions to Transition of batch-arrays.
     batch = Transition(*zip(*transitions))
     # Compute a mask of non-final states and concatenate the batch elements
@@ -153,18 +168,24 @@ def optimize_model():
         dtype=torch.bool,
     )
     # Create a list comprehension that filters out None values from batch.next_state.
+    lst = [s for s in batch.next_state if s is not None ]
     # Concatenates the remaining tensors in the list into a single tensor.
     # The resulting tensor non_final_next_states contains all the next state tensors for non-terminal states in the batch.
+    non_final_next_states = [s for s in batch.next_state if s is not None] 
     # Concatenates tensors from batch.state into a single tensor.
     # The resulting tensor state_batch contains all state tensors in the batch.
+    state_batch = torch.cat(batch.state)
     # Concatenates tensors from batch.action into a single tensor.
     # The resulting tensor action_batch contains all action tensors in the batch.
+    action_batch = torch.cat(batch.action)
     # Concatenates tensors from batch.reward into a single tensor.
     # The resulting tensor reward_batch contains all reward tensors in the batch.
-
+    reward_batch = torch.cat(batch.reward)
     # Pass the state_batch tensor through the policy_net neural network to get Q-values for all actions.
     # Gather specific Q-values from the result tensor. The 1 indicates that we're selecting values along the action dimension (for each state in the batch).
     # The resulting tensor holding the Q-values corresponding to the actions that were actually taken in each state.
+    action_qvals = policy_net(state_batch).gather(1, action_batch)
+
 
     # Initialize a tensor for the next state values with zeros for all batch entries.
     next_state_values = torch.zeros(BATCH_SIZE, device=device)
@@ -175,12 +196,18 @@ def optimize_model():
         next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0]
     
     # Compute the expected Q values
-
+    exp_qvals = (next_state_values * GAMMA)+ reward_batch
     # Compute Huber loss
-
+    # using smoothL1loss
+    hub_temp = nn.SmoothL1Loss()
+    hub = hub_temp(action_qvals,exp_qvals.unsqueeze(1))  
     # Optimize the model
-
-    # In-place gradient clipping
+    optimizer.zero_grad()
+    hub.backward()
+    # In-place gradient clipping, avoids suoper big steps
+    nn.utils.clip_grad_value_(policy_net.parameters(), 100)
+    #finally step
+    optimizer.step()
 
 def main():
     if torch.cuda.is_available():
