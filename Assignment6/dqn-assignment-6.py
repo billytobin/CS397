@@ -27,7 +27,7 @@ plt.ion()
 
 # Determine whether to use a GPU if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+device = torch.device("cpu")
 # Define a named tuple to hold experience tuples
 Transition = namedtuple("Transition", ("state", "action", "next_state", "reward"))
 
@@ -54,9 +54,9 @@ class DQN(nn.Module):
     def __init__(self, inputs, outputs):
         super(DQN, self).__init__()
         # TODO: Define network layers
-        self.layer1 = nn.Linear(inputs, 64)
-        self.layer2 = nn.Linear(64,128)
-        self.layer3 = nn.Linear(128, outputs)
+        self.layer1 = nn.Linear(inputs, 128)
+        self.layer2 = nn.Linear(128,64)
+        self.layer3 = nn.Linear(64, outputs)
         # TODO: Experiment with number of layers and neurons per layer
         
 
@@ -72,7 +72,7 @@ class DQN(nn.Module):
 
 # Hyperparameters (TODO: Define appropriate values)
 BATCH_SIZE = 150 # Batch size
-GAMMA = 0.99 # Discount factor
+GAMMA = 0.9 # Discount factor
 EPS_START = 0.9 # Starting value of epsilon
 EPS_END = 0.05# Minimum value of epsilon
 EPS_DECAY = 1000 # Rate of decay for epsilon
@@ -109,20 +109,27 @@ def select_action(state):
             # Pass the current state through the policy network to get the Q-values for all actions.
             qvals = policy_net(state)
             # Find the action with the highest Q-value.
-            maxAction = qvals.max()
-            # Extract the index of that action (since the index corresponds to the action in a discrete action space).
-            act_index = maxAction.index()
+            
+            ind = np.argmax(qvals)
+            
+            #act_index = qvals.index(maxAction) #didnt work
             # Reshapes the index into a tensor with shape (1, 1), which can be used for further processing or as an input to another function.
-            return torch.tensor([[act_index]])
+            return torch.tensor([[ind]])
+        
+
+            #this seem to be the easiest way to accomplish this
+
+
     else:
         # Creates a new PyTorch tensor.
         #going to do so in a few lines, was easier to do so
         # Generate a nested list with a single element, which is a random sample from the environment's action space.
         random_action = env.action_space.sample()
         # Place the tensor on the specified device (CPU or GPU).
-        #going to do so in a few lines, was easier to do so
         # Set the data type of the tensor to a 64-bit integer.
-        return torch.tensor([[random_action]])
+        
+        #It was easiest to do all these in one line
+        return torch.tensor([[random_action]], device=device, dtype=torch.long)
     
 
 episode_durations = []
@@ -154,7 +161,7 @@ def plot_durations(show_result=False):
             display.display(plt.gcf())
 
 def optimize_model():
-    # TODO: Implement optimization step
+    # TODO: Implement optimization step : will do in subsequent steps
     # If length of memory is less than batch size, return
     if len(memory) < BATCH_SIZE:
         return
@@ -168,10 +175,10 @@ def optimize_model():
         dtype=torch.bool,
     )
     # Create a list comprehension that filters out None values from batch.next_state.
-    lst = [s for s in batch.next_state if s is not None ]
+
     # Concatenates the remaining tensors in the list into a single tensor.
     # The resulting tensor non_final_next_states contains all the next state tensors for non-terminal states in the batch.
-    non_final_next_states = [s for s in batch.next_state if s is not None] 
+    non_final_next_states = torch.cat([s for s in batch.next_state if s is not None ])
     # Concatenates tensors from batch.state into a single tensor.
     # The resulting tensor state_batch contains all state tensors in the batch.
     state_batch = torch.cat(batch.state)
@@ -259,3 +266,5 @@ def main():
     plot_durations(show_result=True)
     plt.ioff()
     plt.show()
+
+main()
